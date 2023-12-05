@@ -1,0 +1,14 @@
+Dentro deste pacote vamos adicionar as configurações, aqui vou está fazendo a configuração de timezone da aplicação, garantindo que ela pegue
+a o horário local e não o horário dos EUA, mudando o seu timeZone
+O springDocOpenApiConfig é uma classe de configuração da documentação
+Acessando a camada de testes basta ir no diretório de test e deletar a classe de teste se for a primeira vez que vai lá, depois cria
+uma nova classe para testar
+
+No spring security
+comece com a classe de configuração do springSecurity
+1 - Crie a classe de configuração de segurança
+2 - Crie a classe e o pacote jwtToken
+3 - Foi feito as regras no jwtUtils, mas pode ser feito dentro do jwtToken
+4 - Crie a UserDetails, é um objeto que vai servir para extender a classe UserDetails, nesse caso Usasmos o JwtUserDetails,
+em outros projetos que vi foi utilizado a própria classe User do projeto para receber a details.
+!!Foi extendido a classe User do mesmo pacote da details
