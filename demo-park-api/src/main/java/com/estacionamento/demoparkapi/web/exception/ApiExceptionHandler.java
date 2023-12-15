@@ -1,6 +1,7 @@
 package com.estacionamento.demoparkapi.web.exception;
 
 
+import com.estacionamento.demoparkapi.exception.CpfUniqueVioletionExceiption;
 import com.estacionamento.demoparkapi.exception.EntityNotFoundException;
 import com.estacionamento.demoparkapi.exception.PasswordInvalidException;
 import com.estacionamento.demoparkapi.exception.UsernameUniqueViolationException;
@@ -51,8 +52,8 @@ public class ApiExceptionHandler {
     }
 
 
-
-    @ExceptionHandler(UsernameUniqueViolationException.class)
+//A anotação @ExceptionHandler aceita um array, facilitando para que seja adicionada mais de uma exceção do mesmo tipo para ser chamado quando occorrer um erro do tipo
+    @ExceptionHandler({UsernameUniqueViolationException.class, CpfUniqueVioletionExceiption.class})
     //Tem um pulo do gato aqui, eu posso passar no argumento UsernameUniqueViolationException, mas posso também passar RuntimeException
     //Que ele passa a capturar todas runtimeException do mesmo tipo e já tratalas
     //Como essa classe eu criei, o BidingResult não existe, logo ele vai dá erro 500, para resolver é só não passar o argumento do result
@@ -78,5 +79,7 @@ public class ApiExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorMessage(request, HttpStatus.UNPROCESSABLE_ENTITY, "Campos inválidos", result));
     }
+
+
 
 }

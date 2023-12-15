@@ -174,9 +174,11 @@ public class UsuarioIT {
     @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
     //o motivo do teste o que vai ser testado e o retorno do teste
     public void findUser_WithIdExist_ReturnStatus200() {
+        //Admin buscando seus dados
         UsuarioResponseDto responseBody = testClient
                 .get()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //aqui é para o token
                 //.contentType(MediaType.APPLICATION_JSON) é removido, pois não estou enviando um json só fazendo uma busca
                 //.bodyValue(new UsuarioCreateDto("ana@gmail.com","123456"))  -> não vai dados na requisição por isso ele é removido
                 .exchange() //é o que é esperado por nós após a requisição
@@ -189,6 +191,43 @@ public class UsuarioIT {
         org.assertj.core.api.Assertions.assertThat(responseBody.getId()).isEqualTo(100);
         org.assertj.core.api.Assertions.assertThat(responseBody.getUsername()).isEqualTo("ana@gmail.com");
         org.assertj.core.api.Assertions.assertThat(responseBody.getRole()).isEqualTo("ADMIN");
+
+//Admin buscando outro cliente
+        responseBody = testClient
+                .get()
+                .uri("/api/v1/usuarios/101")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //aqui é para o token
+                //.contentType(MediaType.APPLICATION_JSON) é removido, pois não estou enviando um json só fazendo uma busca
+                //.bodyValue(new UsuarioCreateDto("ana@gmail.com","123456"))  -> não vai dados na requisição por isso ele é removido
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isOk()//é o que esperamos no status da requisição
+                .expectBody(UsuarioResponseDto.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar uma classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getId()).isEqualTo(101);
+        org.assertj.core.api.Assertions.assertThat(responseBody.getUsername()).isEqualTo("maria@gmail.com");
+        org.assertj.core.api.Assertions.assertThat(responseBody.getRole()).isEqualTo("CLIENTE");
+
+        //Cliente buscando seus próprios dados
+        responseBody = testClient
+                .get()
+                .uri("/api/v1/usuarios/101")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "maria@gmail.com","123456")) //aqui é para o token
+                //.contentType(MediaType.APPLICATION_JSON) é removido, pois não estou enviando um json só fazendo uma busca
+                //.bodyValue(new UsuarioCreateDto("ana@gmail.com","123456"))  -> não vai dados na requisição por isso ele é removido
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isOk()//é o que esperamos no status da requisição
+                .expectBody(UsuarioResponseDto.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getId()).isEqualTo(101);
+        org.assertj.core.api.Assertions.assertThat(responseBody.getUsername()).isEqualTo("maria@gmail.com");
+        org.assertj.core.api.Assertions.assertThat(responseBody.getRole()).isEqualTo("CLIENTE");
+
     }
 
 
@@ -198,6 +237,7 @@ public class UsuarioIT {
         ErrorMessage responseBody = testClient
                 .get()
                 .uri("/api/v1/usuarios/2")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 //.contentType(MediaType.APPLICATION_JSON) é removido, pois não estou enviando um json só fazendo uma busca
                 //.bodyValue(new UsuarioCreateDto("ana@gmail.com","123456"))  -> não vai dados na requisição por isso ele é removido
                 .exchange() //é o que é esperado por nós após a requisição
@@ -210,6 +250,27 @@ public class UsuarioIT {
         org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(404);
     }
 
+
+    @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
+    //o motivo do teste o que vai ser testado e o retorno do teste
+    public void findUser_WithUserClientFindOtherUser_ReturnStatus403() {
+        ErrorMessage responseBody = testClient
+                .get()
+                .uri("/api/v1/usuarios/2")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "maria@gmail.com","123456")) //Para o jwt
+                //.contentType(MediaType.APPLICATION_JSON) é removido, pois não estou enviando um json só fazendo uma busca
+                //.bodyValue(new UsuarioCreateDto("ana@gmail.com","123456"))  -> não vai dados na requisição por isso ele é removido
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isForbidden()//é o que esperamos no status da requisição
+                .expectBody(ErrorMessage.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(403);
+    }
+
+
     @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
     //o motivo do teste o que vai ser testado e o retorno do teste
     public void editPassword_WithValidData_ReturnStatus204() {
@@ -217,6 +278,7 @@ public class UsuarioIT {
          testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(new UsuarioSenhaDto("123456","123567","123567"))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -231,8 +293,20 @@ public class UsuarioIT {
         org.assertj.core.api.Assertions.assertThat(responseBody.getNovaSenha()).isEqualTo("123567");
         org.assertj.core.api.Assertions.assertThat(responseBody.getConfirmaSenha()).isEqualTo("123567");
         */
+
+
+        //Editando a senha do usuário
+        testClient
+                .patch()
+                .uri("/api/v1/usuarios/101")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "maria@gmail.com","123456")) //Para o jwt
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new UsuarioSenhaDto("123456","123567","123567"))
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isNoContent();
     }
 
+  /* Removido por conta do PreAuthorize e substituido pelo 403
     @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
     //o motivo do teste o que vai ser testado e o retorno do teste
     public void editPassword_WithIdDoesNotExist_ReturnStatus404() {
@@ -249,6 +323,42 @@ public class UsuarioIT {
         //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
         org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
         org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(404);
+    }*/
+
+    @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
+    //o motivo do teste o que vai ser testado e o retorno do teste
+    public void editPassword_WithIdDoesNotExistWithDifferentUsers_ReturnStatus403() {
+        //teste com admin
+        ErrorMessage responseBody = testClient
+                .patch()
+                .uri("/api/v1/usuarios/0")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
+                .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
+                .bodyValue(new UsuarioSenhaDto("123456","123567","123567"))
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isForbidden()//é o que esperamos no status da requisição
+                .expectBody(ErrorMessage.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(403);
+
+        //teste com cliente
+        responseBody = testClient
+                .patch()
+                .uri("/api/v1/usuarios/0")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "maria@gmail.com","123456")) //Para o jwt
+                .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
+                .bodyValue(new UsuarioSenhaDto("123456","123567","123567"))
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isForbidden()//é o que esperamos no status da requisição
+                .expectBody(ErrorMessage.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(403);
     }
 
     @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
@@ -257,6 +367,7 @@ public class UsuarioIT {
         ErrorMessage responseBody = testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
                 .bodyValue(new UsuarioSenhaDto("","",""))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -271,6 +382,7 @@ public class UsuarioIT {
         responseBody = testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
                 .bodyValue(new UsuarioSenhaDto("12345","12345","12345"))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -285,6 +397,7 @@ public class UsuarioIT {
         responseBody = testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
                 .bodyValue(new UsuarioSenhaDto("1234578","1234578","1234578"))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -303,6 +416,7 @@ public class UsuarioIT {
         ErrorMessage responseBody = testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
                 .bodyValue(new UsuarioSenhaDto("000000","123456","123456"))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -317,6 +431,7 @@ public class UsuarioIT {
         responseBody = testClient
                 .patch()
                 .uri("/api/v1/usuarios/100")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .contentType(MediaType.APPLICATION_JSON) //é removido, pois não estou enviando um json só fazendo uma busca
                 .bodyValue(new UsuarioSenhaDto("123456","123456","000000"))
                 .exchange() //é o que é esperado por nós após a requisição
@@ -337,6 +452,7 @@ public class UsuarioIT {
         List<UsuarioResponseDto> responseBody = testClient
                 .get()
                 .uri("/api/v1/usuarios")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@gmail.com","123456")) //Para o jwt
                 .exchange() //é o que é esperado por nós após a requisição
                 .expectStatus().isOk()//é o que esperamos no status da requisição
                 .expectBodyList(UsuarioResponseDto.class) //é o que esperamos no corpo da requisição
@@ -345,6 +461,26 @@ public class UsuarioIT {
         //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
         org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
         org.assertj.core.api.Assertions.assertThat(responseBody.size()).isEqualTo(3);
+
+    }
+
+
+
+    @Test //Anotação para testar, são sempre público e sem retorno os testes. No teste é importante que tenha:
+    //o motivo do teste o que vai ser testado e o retorno do teste
+    public void findAllUsers_WithUserWithoutPermission_ReturnStatus403() {
+        ErrorMessage responseBody = testClient
+                .get()
+                .uri("/api/v1/usuarios")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "maria@gmail.com","123456")) //Para o jwt
+                .exchange() //é o que é esperado por nós após a requisição
+                .expectStatus().isForbidden()//é o que esperamos no status da requisição
+                .expectBody(ErrorMessage.class) //é o que esperamos no corpo da requisição
+                .returnResult().getResponseBody(); //é o que espera retornar na requisição
+
+        //vamos utilizar una classe chamada assetion com o seguinte pacote org.assertj.core.api.Assertions que da os métodos de teste para o objeto
+        org.assertj.core.api.Assertions.assertThat(responseBody).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(responseBody.getStatus()).isEqualTo(403);
 
     }
 }

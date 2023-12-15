@@ -75,12 +75,11 @@ public class UsuarioController {
 
     @Operation(summary = "Atualizar senha", description = "Atualizar senha.  A requisição exige um bearer Token. Acesso restrito ao ADMIN e CLIENTE", security = @SecurityRequirement(name = "security"),
             responses= {
-            @ApiResponse(responseCode = "204", description = "Senha atualizada com sucesso.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = void.class))),
+            @ApiResponse(responseCode = "204", description = "Senha atualizada com sucesso."),
             @ApiResponse(responseCode = "404",description = "Recurso não encontrado.",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
-            @ApiResponse(responseCode = "400",description = "Senha não confere.",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
+           // @ApiResponse(responseCode = "400",description = "Senha não confere.", foi removido por conta do PreAuthorize
+             //       content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
             @ApiResponse(responseCode = "422",description = "Campos inválidos ou não formatados.",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorMessage.class))),
             @ApiResponse(responseCode = "403",description = "Acesso negado.",
@@ -89,7 +88,7 @@ public class UsuarioController {
     @PatchMapping("/{id}")//Devolvendo um valor vazio só passando o void dentro do responseEntity
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENTE') AND (#id == authentication.principal.id)")
     public ResponseEntity<Void> updatePassword(@PathVariable Long id, @Valid @RequestBody UsuarioSenhaDto dto) {
-        Usuario user = usuarioService.editarSenha(id, dto.getSenhaAtual(), dto.getNovaSenha(), dto.getConfirmaSenha());
+        usuarioService.editarSenha(id, dto.getSenhaAtual(), dto.getNovaSenha(), dto.getConfirmaSenha());
         return ResponseEntity.noContent().build();
     }
 
